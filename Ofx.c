@@ -7,57 +7,83 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "CustomTypes.h"
 #include "Macros.h"
 #include "TestParameterLut.h"
 #include "Utilities.h"
-#include "Structs.h"
 
 
-uint8_t FPGA_section_status;
-uint8_t main_state;
-uint8_t main_model;
-uint16_t main_fxcore_address;
-uint32_t main_flash_address;
-uint8_t main_stage;
-uint8_t main_effect;
-uint8_t main_param;
-uint8_t Flash_header_status;
-uint8_t Flash_stage_status[3];
-uint8_t state_change;
-uint8_t model_change;
-uint8_t stage_change;
-uint8_t effect_change;
-uint8_t param_change;
-uint8_t value_change;
-
-
-#define DBG_MAIN 0
-/******************************************************************
- *
- *		Peripheral driver files
- *
- ******************************************************************/
-#include "IoLines.h"
-#include "UiDrivers.h"
-#include "FlashDrivers.h"
-#include "FXCoreDrivers.h"
-#include "CodecDrivers.h"
 
 /*******************************************************************
  *
  *		Peripheral operation files
  *
  *******************************************************************/
-#include "UiOp.h"
-#include "FlashOp.h"
-#include "FXCoreOp.h"
 
+#include "IoLines.h"
 #include "ChipInit.h"
 #include "InterruptHandlers.h"
+
+static uint8_t main_stage;
+static uint8_t main_effect;
+static uint8_t FPGA_section_status;
+static uint8_t main_state;
+static uint8_t Flash_header_status;
+static uint8_t Flash_stage_status[3];
+static uint8_t model_change;
+
+
+uint8_t getMainStage(void){return main_stage;}
+uint8_t getMainEffect(void){return main_effect;}
+
+void setFpgaSectionStatus(uint8_t status){FPGA_section_status = status;}
+uint8_t getFpgaSectionStatus(void){return FPGA_section_status;}
+
+void setMainState(uint8_t state){main_state = state;}
+uint8_t getMainState(void){return main_state;}
+
+void setFlashHeaderStatus(uint8_t status){Flash_header_status = status;}
+uint8_t getFlashHeaderStatus(void){return Flash_header_status;}
+
+void setFlashStageStatus(uint8_t stageIndex, uint8_t status){Flash_stage_status[stageIndex] = status;}
+uint8_t getFlashStageStatus(uint8_t stageIndex){return Flash_stage_status[stageIndex];}
+
+void setModelChange(uint8_t status){model_change = status;}
+uint8_t getModelChange(void){return model_change;}
+
+
+#define DBG_MAIN 0
+
+/******************************************************************
+ *
+ *		Peripheral driver files
+ *
+ ******************************************************************/
+
+
+
+#include "CommModule.h"
+#include "UiModule.h"
+#include "FlashModule.h"
+#include "FXCoreModule.h"
+#include "CodecModule.h"
 
 
 int main(void)
 {
+
+	uint8_t main_model;
+	 uint8_t main_param;
+	 uint8_t state_change;
+	 uint8_t stage_change;
+	 uint8_t effect_change;
+	 uint8_t param_change;
+	 uint8_t value_change;
+#if(DBG_MAIN)
+	  uint16_t main_fxcore_address;
+	  uint32_t main_flash_address;
+#endif
+
 	char abbr_buffer[5]; // use with Flash_array_read() to write to string buffers
 	char name_buffer[11];
 	char tempBuffer[17];

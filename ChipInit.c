@@ -1,6 +1,6 @@
 
 #include "ChipInit.h"
-#include "CommDrivers.h"
+#include "CommModule.h"
 #include "Macros.h"
 /***********************************************************
  *		IO Configuration

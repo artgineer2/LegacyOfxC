@@ -1,12 +1,12 @@
 
 #include "InterruptHandlers.h"
-
-#include "CommDrivers.h"
 #include "Constants.h"
-#include "FXCoreDrivers.h"
-#include "FXCoreOp.h"
+#include "CustomTypes.h"
+#include "FlashModule.h"
+#include "CommModule.h"
+#include "FXCoreModule.h"
 #include "Ofx.h"
-#include "UiOp.h"
+#include "UiModule.h"
 #include "Utilities.h"
 
 
@@ -15,7 +15,7 @@ uint8_t count_up;
 uint8_t count_down;
 uint8_t count_dir;
 
-extern uint8_t FPGA_section_status;
+//extern uint8_t FPGA_section_status;
 static uint8_t rx_done;
 static uint32_t rx_count;
 
@@ -148,9 +148,9 @@ ISR(USART0_RX_vect)
 			Display("FXCore Code","Erased");
 			delay(200000);
 			print("done ", 5);
-			FPGA_section_status = 1;
-			model_change = 1;
-			main_state = 0;
+			setFpgaSectionStatus(1);
+			setModelChange(1);
+			setMainState(0);
 			rx_total.long_var = 0;
 			rx_count = 0;
 			rx_done = 1;
@@ -172,8 +172,8 @@ ISR(USART0_RX_vect)
 				rx_done = 1;
 				rx_total.long_var = 0;
 				rx_count = 0;
-				main_state = 0;
-				model_change = 1;
+				setMainState(0);
+				setModelChange(1);
 			}
 			else
 			{
@@ -193,8 +193,8 @@ ISR(USART0_RX_vect)
 				txBufferByteCat(flashRead(rx_start_addr.long_var + i));
 			}
 			print((char *)getTxBuffer(),TX_BUFFER_SIZE);
-			model_change = 1;
-			main_state = 0;
+			setModelChange(1);
+			setMainState(0);
 			rx_total.long_var = 0;
 			rx_count = 0;
 			rx_done = 1;
@@ -249,10 +249,10 @@ ISR(USART0_RX_vect)
 			{
 				Display("Erase","error");
 			}
-			main_state = 0;
+			setMainState(0);
 			delay(200000);
 			print("done ", 5);
-			model_change = 1;
+			setModelChange(1);
 			rx_count = 0;
 			rx_total.long_var = 0;
 			rx_done = 1;
@@ -272,27 +272,27 @@ ISR(USART0_RX_vect)
 				clearBuffer1();
 				if (rx_section == 0)
 				{
-					Flash_header_status = fxcoreHeaderLoad(rx_model);
-					main_state = 0;
+					setFlashHeaderStatus(fxcoreHeaderLoad(rx_model));
+					setMainState(0);
 				}
 				else
 				{
-					Flash_stage_status[rx_stage] = fxcoreStageLoad(rx_model, rx_stage);
-					if(Flash_stage_status[rx_stage] != 0) buffer1Cat("error");
+					setFlashStageStatus(rx_stage,fxcoreStageLoad(rx_model, rx_stage));
+					if(getFlashStageStatus(rx_stage) != 0) buffer1Cat("error");
 					else
 					{
 
 						buffer1Cat("stage ");
 						buffer1ByteCat(stage);
 					}
-					main_state = 0;
+					setMainState(0);
 				}
 				Display("done",getBuffer1());
-				debugDisplay(main_state,0,rx_model,rx_section,rx_stage,rx_stage_address);
-				main_state = 0;
+				debugDisplay(getMainState(),0,rx_model,rx_section,rx_stage,rx_stage_address);
+				setMainState(0);
 				delay(200000);
 				print("done ", 5);
-				model_change = 1;
+				setModelChange(1);
 				rx_count = 0;
 				rx_total.long_var = 0;
 				rx_done = 1;
@@ -344,8 +344,8 @@ ISR(USART0_RX_vect)
 
 			delay(20000);
 			print((char *)getTxBuffer(),TX_BUFFER_SIZE);
-			model_change = 1;
-			main_state = 0;
+			setModelChange(1);
+			setMainState(0);
 			rx_count = 0;
 			rx_done = 1;
 
@@ -404,7 +404,7 @@ ISR(USART0_RX_vect)
 				Display("reseting",NULL);
 				delay(200000);
 				print("done ", 5);
-				model_change = 0;
+				setModelChange(0);
 				rx_count = 0;
 				rx_total.long_var = 0;
 				rx_done = 1;
